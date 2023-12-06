@@ -15,13 +15,10 @@ for my $time (sort {$a <=> $b} keys %records) {
     my @range = reverse (1 .. int($time/2));
     my $start = 1;
     while (my $speed = $range[midPoint(\@range, \$start)]) {
-#   for my $speed (@range) {
         my $wins = race($time, $speed);
         print ":${wins}";
         # if it wins, move forward half again.
         if ($wins) {
-#           my $remain = scalar @range - $start;
-#           $start += int($remain/2);
             next;
         }
         # if it loses, everything after that record loses. delete them
@@ -51,15 +48,6 @@ sub race {
     my $ttl = $time - $speed;
     my $travelDistance = $ttl * $speed;
     my $wins = $travelDistance if ($travelDistance > $records{$time});
-    printf("racetime: %d, button: %d, speed: %d, timeLeft: %d distance: %d record: %d (%s)\n"
-    ,   $time
-    ,   $speed
-    ,   $speed
-    ,   $ttl
-    ,   $travelDistance
-    ,   $records{$time}
-    ,   $wins
-    ) if (0);
     return $wins;
 }
 __DATA__
