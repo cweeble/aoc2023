@@ -55,7 +55,6 @@ sub sort_both {
         $answer == -1 ? '>'
     :   $answer == 1 ? '<'
     :   0;
-    print "${a} ${flag} ${b}\n";
     return $answer;
 }
 
