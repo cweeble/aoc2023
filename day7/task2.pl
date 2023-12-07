@@ -25,12 +25,14 @@ sub sort_rank {
 
     my ($xR, $yR) = (\%x, \%y);
     if ($x{'J'}) {
-        joker($xR);
-        %x = %{$xR};
+        my $ref = \%x;
+        joker($ref);
+        %x = %{$ref};
     }
     if ($y{'J'}) {
-        joker($yR);
-        %y = %{$yR};
+        my $ref = \%y;
+        joker($ref);
+        %y = %{$ref};
     }
 
     my $x = join('', sort {$b<=>$a} values %x);
