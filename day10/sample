@@ -1,0 +1,56 @@
+#!/usr/bin/perl
+use strict;
+our ($x, $y) = (0,0);
+my ($startX, $startY);
+my @map;
+while (my $line = <DATA>) {
+    chomp $line;
+    my @chars = split(//, $line);
+    for (@chars) {
+        $map[$x][$y] = $_;
+        if ($_ eq 'S') {
+            ($startX, $startY) = ($x,$y);
+        }
+        $x++;
+    }
+    $y++;
+    $x=0;
+}
+my @route;
+($x, $y) = ($startX, $startY);
+my $c = 'F';
+my $from = 'S';
+my $pos=0;
+until ($c eq 'S') {
+    $map[$x][$y] = qw/0 1 2 3 4 5 6 & 8 9/[$pos] unless (($x==$startX) && ($y==$startY));
+    if ($c eq '|') { if ($from eq 'N') { $y++; } else { $y--; } }
+    if ($c eq '-') { if ($from eq 'W') { $x++; } else { $x--; } }
+    if ($c eq 'L') { if ($from eq 'N') { $x++; $from = 'W'; } else { $y--; $from = 'S'; } }
+    if ($c eq 'J') { if ($from eq 'N') { $x--; $from = 'E'; } else { $y--; $from = 'S'; } }
+    if ($c eq '7') { if ($from eq 'S') { $x--; $from = 'E'; } else { $y++; $from = 'N'; } }
+    if ($c eq 'F') { if ($from eq 'S') { $x++; $from = 'W'; } else { $y++; $from = 'N'; } }
+    $c = $map[$x][$y];
+    $pos++; $pos %=10;
+    push (@route, $c);
+}
+for ($y=0; $y<10; $y++) {
+    for ($x=0; $x<20; $x++) {
+        print $map[$x][$y];
+    }
+    print "\n";
+}
+
+print join('', @route);
+print "\n";
+print @route/2;
+__DATA__
+.F----7F7F7F7F-7....
+.|F--7||||||||FJ....
+.||.FJ||||||||L7....
+FJL7L7LJLJ||LJ.L-7..
+L--J.L7...LJS7F-7L7.
+....F-J..F7FJ|L7L7L7
+....L7.F7||L7|.L7L7|
+.....|FJLJ|FJ|F7|.LJ
+....FJL-7.||.||||...
+....L---J.LJ.LJLJ...
