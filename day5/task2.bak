@@ -1,0 +1,126 @@
+#!/usr/bin/perl
+use Data::Dumper;
+use strict;
+my (@seeds, %seed_to_soil, %soil_to_fertilizer, %fertilizer_to_water, 
+    %water_to_light, %light_to_temperature, %temperature_to_humidity, 
+    %humidity_to_location);
+my %seeds;
+my %refs = (
+    'seed_to_soil' => \%seed_to_soil,
+    'soil_to_fertilizer' => \%soil_to_fertilizer,
+    'fertilizer_to_water' => \%fertilizer_to_water,
+    'water_to_light' => \%water_to_light,
+    'light_to_temperature' => \%light_to_temperature,
+    'temperature_to_humidity' => \%temperature_to_humidity,
+    'humidity_to_location' => \%humidity_to_location
+    );
+my $hashRef;
+while (my $line = <DATA>) {
+    chomp $line;
+    $line =~ tr/-/_/;
+    next unless ($line =~ /\w/);
+    if ($line =~ s/^seeds: //) {
+        %seeds = split(/ /, $line);
+        next;
+    }
+    if ($line =~ s/ map://) {
+#       check($hashRef);
+        $hashRef = $refs{$line};
+        print "$line\n";
+        next;
+    }
+
+    my ($to, $from, $range) = split(/ +/, $line);
+    my $key = join(":", $from, $from+$range-1);
+    my $value = join(":", $to, $to+$range-1);
+    $hashRef->{$key} = $value;
+}
+#check (\%humidity_to_location);
+
+my @locations;
+for my $seedKey (keys %seeds) {
+    for my $seed ($seedKey .. $seedKey+$seeds{$seedKey}-1) {
+        my $soil = decode(\%seed_to_soil, $seed);
+        my $fertilizer = decode(\%soil_to_fertilizer, $soil);
+        my $water = decode(\%fertilizer_to_water, $fertilizer);
+        my $light = decode(\%water_to_light, $water);
+        my $temperature = decode(\%light_to_temperature, $light);
+        my $humidity = decode(\%temperature_to_humidity, $temperature);
+        my $location = decode(\%humidity_to_location, $humidity);
+
+        printf("seed %d soil %d fert %d water %d light %d temp %d humid %d loc %d\n", $seed, $soil, $fertilizer, $water, $light, $temperature, $humidity, $location);
+        push (@locations, $location);
+    }
+}
+warn Dumper \@locations;
+my @answer = sort {$a <=> $b} @locations;
+print $answer[0];
+
+sub decode {
+    my ($hashref, $from) = @_;
+    my %hash = %{$hashref};
+    my $answer = $from;
+    for my $key (keys %hash) {
+        if (inRange($key, $from)) {
+            my ($keyStart, $keyTo, $valueStart) = split(':', $key . ':' . $hash{$key});
+            $keyStart -= $from;
+            $answer = $valueStart + abs($keyStart);
+            last;
+        }
+    }
+
+    return $answer;
+}
+
+sub inRange {
+    my ($fromRange, $check) = @_;
+    my ($x, $y) = split(/:/, $fromRange);
+    return (($x<=$check) and ($y>=$check));
+}
+
+sub check {
+    my ($hashref) = @_;
+    return undef if (!ref $hashref);
+    my %hash = %{$hashref};
+    my @keys = sort keys %hash;
+    my $maxRange = $1 if ($keys[-1] =~ /:(\d+)/);
+    for (0 .. $maxRange) {
+        my $decode = decode($hashref, $_);
+        print join(' => ', $_, $decode);
+        print "\n";
+    }
+}
+__DATA__
+seeds: 79 14 55 13
+
+seed-to-soil map:
+50 98 2
+52 50 48
+
+soil-to-fertilizer map:
+0 15 37
+37 52 2
+39 0 15
+
+fertilizer-to-water map:
+49 53 8
+0 11 42
+42 0 7
+57 7 4
+
+water-to-light map:
+88 18 7
+18 25 70
+
+light-to-temperature map:
+45 77 23
+81 45 19
+68 64 13
+
+temperature-to-humidity map:
+0 69 1
+1 0 69
+
+humidity-to-location map:
+60 56 37
+56 93 4
